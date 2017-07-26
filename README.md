@@ -1,3 +1,3 @@
-# Ubersicht Things
+# Ubersicht Ubersicht.Trello.widget
 
-Where I put my Ubersicht stuff.
+Dashboard for me made by pulling data from Trello via API
