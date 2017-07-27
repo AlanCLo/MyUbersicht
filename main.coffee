@@ -29,6 +29,7 @@ trelloDoneListId: "569ed04150080cd5968c4d98" # Id of a done list which don't be 
 # Constants
 # ----
 
+MSEC_IN_DAY: 24 * 60 * 60 * 1000
 DAY_NAMES: ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
 OFFDAY_INDICIES:[0,6] # Sat and Sun are off days. Colour them differently
 
@@ -54,6 +55,11 @@ style: """
 	.column2
 		float: left
 		margin-left: 400px
+		max-width: 400px
+
+	.column3
+		float: left
+		margin-left: 800px
 		max-width: 400px
 
 	.container
@@ -91,7 +97,7 @@ style: """
 		background: rgba(#0af, 0.8)
 		
 	.content
-		font-size: 13px
+		font-size: 16px
 		font-weight: bold
 
 	.today
@@ -109,6 +115,10 @@ render: -> """
 				<div class="title"></div>
 				<table></table>
 			</div>
+			<div class="container column3" id="beyond">
+				<div class="title"></div>
+				<table></table>
+			</div>
 	</div>
 """
 
@@ -120,68 +130,96 @@ render: -> """
 update: (output, domEl) ->
 	cards = JSON.parse(output)
 
-	drawTable = (uber, cards, domEl, containerId, title, now) ->
-			$titleDiv = $(domEl).find(containerId).find("div.title")
-			$titleDiv.append(title)
-			$dailyList = $(domEl).find(containerId).find("table")
-			$dailyList.empty()
+	drawTable = (uber, cards, domEl, containerId, title, isThisMonth) ->
+		$titleDiv = $(domEl).find(containerId).find("div.title")
+		$titleDiv.empty()
+		$titleDiv.append(title)
+		$dailyList = $(domEl).find(containerId).find("table")
+		$dailyList.empty()
 
-			y = now.getFullYear()
-			m = now.getMonth()
-			today = now.getDate()
-			firstWeekDay = new Date(y, m, 1).getDay()
-			lastDate = new Date(y, m + 1, 0).getDate()
+		now = new Date()
+		if !isThisMonth
+			now.setMonth(now.getMonth() + 1)
+		y = now.getFullYear()
+		m = now.getMonth()
+		today = now.getDate()
 
+		if isThisMonth
+			i = today
+		else
 			i = 1
-			w = firstWeekDay
+		w = new Date(y, m, i).getDay()
+		lastDate = new Date(y, m + 1, 0).getDate()
 
-			while i <= lastDate
-				w %= 7
-				isToday = (i is today)
-				todayClass = "today"
-				if !isToday
-					todayClass = ""
-				isOffday = (uber.OFFDAY_INDICIES.indexOf(w) isnt -1)
-				offDayClass = "off"
-				if !isOffday
-					offDayClass = ""
-			
-				dayText = uber.DAY_NAMES[w]
+		while i <= lastDate
+			w %= 7
+			isToday = (i is today) and isThisMonth
+			todayClass = "today"
+			if !isToday
+				todayClass = ""
+			isOffday = (uber.OFFDAY_INDICIES.indexOf(w) isnt -1)
+			offDayClass = "off"
+			if !isOffday
+				offDayClass = ""
+		
+			dayText = uber.DAY_NAMES[w]
 
-				num = 0
-				for cardData in cards
-					if cardData.idList == uber.trelloDoneListId
-						continue
-					cardDate = new Date(cardData.due)
-					if cardDate.getFullYear() == y and cardDate.getMonth() == m and cardDate.getDate() == i
-						html = "<tr>"
-						if num == 0
-							html += """<td class="day #{offDayClass}">#{dayText} #{i}</td>"""
-						else
-							html += """<td class="day #{offDayClass}"></td>"""
+			num = 0
+			for cardData in cards
+				if cardData.idList == uber.trelloDoneListId
+					continue
+				cardDate = new Date(cardData.due)
+				if cardDate.getFullYear() == y and cardDate.getMonth() == m and cardDate.getDate() == i
+					html = "<tr>"
+					if num == 0
+						html += """<td class="day #{offDayClass}">#{dayText} #{i}</td>"""
+					else
+						html += """<td class="day #{offDayClass}"></td>"""
 
-						html += """<td class="midline"></td>"""
-						html += """<td class="content #{todayClass}">#{cardData.name}</td>"""
+					html += """<td class="midline"></td>"""
+					html += """<td class="content #{todayClass}">#{cardData.name}</td>"""
 
-						html += "</tr>"
-						$dailyList.append(html)
-						num++
-			
-				if num == 0
-					$dailyList.append("""
-						<tr>
-							<td class="day #{offDayClass}">#{dayText} #{i}</td>
-							<td class="midline"></td>
-							<td class="content #{todayClass}"></td>
-						</tr>
-					""")
-				i++
-				w++
+					html += "</tr>"
+					$dailyList.append(html)
+					num++
+		
+			if num == 0
+				$dailyList.append("""
+					<tr>
+						<td class="day #{offDayClass}">#{dayText} #{i}</td>
+						<td class="midline"></td>
+						<td class="content #{todayClass}"></td>
+					</tr>
+				""")
+			i++
+			w++
+
+	drawBeyond = (uber, cards, domEl, containerId, title) ->
+		$titleDiv = $(domEl).find(containerId).find("div.title")
+		$titleDiv.empty()
+		$titleDiv.append(title)
+		$beyondTable = $(domEl).find(containerId).find("table")
+		$beyondTable.empty()
+
+		now = new Date()
+		next = new Date()
+		next.setMonth(next.getMonth() + 1)
+		daysDiff = (d1, d2) -> Math.round((d2 - d1)/uber.MSEC_IN_DAY)
+
+		for cardData in cards
+			if cardData.idList == uber.trelloDoneListId
+				continue
+			cardDate = new Date(cardData.due)
+			if cardDate > next
+				html = "<tr>"
+				html += "<td>#{cardDate.toISOString().substring(0,10)}</td>"
+				diff = daysDiff(now, cardDate)
+				html += "<td>(#{diff} DAYS)</td>"
+				html += """<td class="content">#{cardData.name}</td></tr>"""
+				html += "</tr>"
+				$beyondTable.append(html)
 
 
-	now = new Date()
-	drawTable(@, cards, domEl, "#thisMonth", "This Month", now)
-	next = new Date()
-	next.setMonth(now.getMonth() + 1)
-	drawTable(@, cards, domEl, "#nextMonth", "Next Month", next)
-
+	drawTable(@, cards, domEl, "#thisMonth", "This Month", true)
+	drawTable(@, cards, domEl, "#nextMonth", "Next Month", false)
+	drawBeyond(@, cards, domEl, "#beyond", "Beyond")
