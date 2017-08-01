@@ -23,6 +23,7 @@
 
 refreshFrequency: 3600000 # Refresh every hour
 trelloDoneListId: "569ed04150080cd5968c4d98" # Id of a done list which don't be processed
+waitintListId: "5979792053e9f8c3142f4912"    # Id of the waiting list to highlight
 
 
 # ----
@@ -37,7 +38,7 @@ OFFDAY_INDICIES:[0,6] # Sat and Sun are off days. Colour them differently
 command: """
 $(cat ~/TrelloAPI.env.sh)
 curl --silent "https://api.trello.com/1/boards/${TRELLO_BOARD_ID}/cards?key=${TRELLO_APP_KEY}&token=${TRELLO_TOKEN}" | \
-/usr/local/bin/jq '[.[] | select(.due != null) | {name:.name, due:.due, idList:.idList}] | sort_by(.due)'
+/usr/local/bin/jq '[.[] | {name:.name, due:.due, idList:.idList}] | sort_by(.due)'
 """
 
 
@@ -48,24 +49,12 @@ style: """
 	.layout
 		width: 100%
 
-	.column1
-		float: left
-		max-width: 400px
-
-	.column2
-		float: left
-		margin-left: 400px
-		max-width: 400px
-
-	.column3
-		float: left
-		margin-left: 800px
-		max-width: 400px
-
 	.container
 		margin 20px 20px 15px
 		padding 10px
 		border-radius 5px
+		float: left
+		max-width: 400px
 	
 	.title
 		font-size: 14px
@@ -106,32 +95,33 @@ style: """
 	#thisMonth
 		background: rgba(#030, 0.2)
 
+
 	#nextMonth
 		background: rgba(#003, 0.2)
+
 
 	#beyond
 		background: rgba(#000, 0.5)
 
+
 	#waiting
-		background: rgba(#000, 0.5)
+		background: rgba(#522, 0.5)
 		float: left
-		margin-left: 0px
-		max-width: 2000px
 		
 """
 
 render: -> """
 	<div class="layout">
-			<div class="container column1" id="thisMonth">
-				<div class="title"></div>
+			<div class="container" id="thisMonth">
+				<div class="title">This Month</div>
 				<table></table>
 			</div>
-			<div class="container column2" id="nextMonth">
-				<div class="title"></div>
+			<div class="container" id="nextMonth">
+				<div class="title">Next Month</div>
 				<table></table>
 			</div>
-			<div class="container column3" id="beyond">
-				<div class="title"></div>
+			<div class="container" id="beyond">
+				<div class="title">Beyond</div>
 				<table></table>
 			</div>
 			<div class="container" id="waiting">
@@ -149,10 +139,7 @@ render: -> """
 update: (output, domEl) ->
 	cards = JSON.parse(output)
 
-	drawTable = (uber, cards, domEl, containerId, title, isThisMonth) ->
-		$titleDiv = $(domEl).find(containerId).find("div.title")
-		$titleDiv.empty()
-		$titleDiv.append(title)
+	drawTable = (uber, cards, domEl, containerId, isThisMonth) ->
 		$dailyList = $(domEl).find(containerId).find("table")
 		$dailyList.empty()
 
@@ -185,7 +172,7 @@ update: (output, domEl) ->
 
 			num = 0
 			for cardData in cards
-				if cardData.idList == uber.trelloDoneListId
+				if cardData.idList == uber.trelloDoneListId or cardData.due is null
 					continue
 				cardDate = new Date(cardData.due)
 				if cardDate.getFullYear() == y and cardDate.getMonth() == m and cardDate.getDate() == i
@@ -213,10 +200,7 @@ update: (output, domEl) ->
 			i++
 			w++
 
-	drawBeyond = (uber, cards, domEl, containerId, title) ->
-		$titleDiv = $(domEl).find(containerId).find("div.title")
-		$titleDiv.empty()
-		$titleDiv.append(title)
+	drawBeyond = (uber, cards, domEl, containerId) ->
 		$beyondTable = $(domEl).find(containerId).find("table")
 		$beyondTable.empty()
 
@@ -226,7 +210,7 @@ update: (output, domEl) ->
 		daysDiff = (d1, d2) -> Math.round((d2 - d1)/uber.MSEC_IN_DAY)
 
 		for cardData in cards
-			if cardData.idList == uber.trelloDoneListId
+			if cardData.idList == uber.trelloDoneListId or cardData.due is null
 				continue
 			cardDate = new Date(cardData.due)
 			if cardDate > next
@@ -238,7 +222,23 @@ update: (output, domEl) ->
 				html += "</tr>"
 				$beyondTable.append(html)
 
+	drawWaiting = (uber, cards, domEl, containerId) ->
+		$waitingTable = $(domEl).find(containerId).find("table")
+		$waitingTable.empty()
 
-	drawTable(@, cards, domEl, "#thisMonth", "This Month", true)
-	drawTable(@, cards, domEl, "#nextMonth", "Next Month", false)
-	drawBeyond(@, cards, domEl, "#beyond", "Beyond")
+		for cardData in cards
+			if cardData.idList == uber.waitintListId
+				html = "<tr>"
+				html +=  """<td class="content">#{cardData.name}</td>"""
+				html += "</tr>"
+				$waitingTable.append(html)
+
+
+	drawTable(@, cards, domEl, "#thisMonth", true)
+	drawTable(@, cards, domEl, "#nextMonth", false)
+	drawBeyond(@, cards, domEl, "#beyond")
+	drawWaiting(@, cards, domEl, "#waiting")
+
+
+
+
