@@ -37,7 +37,8 @@ OFFDAY_INDICIES:[0,6] # Sat and Sun are off days. Colour them differently
 # Fetch all the cards from a board, then convert them into an an array of objects with {Name, Due, ID}
 command: """
 $(cat ~/TrelloAPI.env.sh)
-curl --silent "https://api.trello.com/1/boards/${TRELLO_BOARD_ID}/cards?key=${TRELLO_APP_KEY}&token=${TRELLO_TOKEN}" | \
+curl --silent "https://api.trello.com/1/boards/${TRELLO_BOARD_ID}/cards?key=${TRELLO_APP_KEY}&token=${TRELLO_TOKEN}" > /tmp/Ubersicht.Trello.widget.data
+cat /tmp/Ubersicht.Trello.widget.data | \
 /usr/local/bin/jq '[.[] | {name:.name, due:.due, idList:.idList}] | sort_by(.due)'
 """
 
@@ -229,7 +230,12 @@ update: (output, domEl) ->
 		for cardData in cards
 			if cardData.idList == uber.waitintListId
 				html = "<tr>"
-				html +=  """<td class="content">#{cardData.name}</td>"""
+				html +=  """<td>#{cardData.name}</td>"""
+				if cardData.due is null
+					html += "<td></td>"
+				else
+					cardDate = new Date(cardData.due)
+					html += """<td>#{cardDate.toISOString().substring(0,10)}</td>"""
 				html += "</tr>"
 				$waitingTable.append(html)
 
