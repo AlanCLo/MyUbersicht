@@ -13,7 +13,10 @@
 #   export TRELLO_APP_KEY=...
 #   export TRELLO_TOKEN=...
 #   export TRELLO_BOARD_ID=...
-
+#	export UBER_RECORD_SCRIPT=(full path including filename)
+#	export UBER_STATS_DB_PATH=(full path including filename as json)
+#	export UBER_STATS_LISTS='["...", "...", "..."]'
+#	export UBER_STATS_DONE=... (should be in UBER_STATS_LISTS)
 
 
 
@@ -38,8 +41,8 @@ OFFDAY_INDICIES:[0,6] # Sat and Sun are off days. Colour them differently
 command: """
 $(cat ~/TrelloAPI.env.sh)
 curl --silent "https://api.trello.com/1/boards/${TRELLO_BOARD_ID}/cards?key=${TRELLO_APP_KEY}&token=${TRELLO_TOKEN}" > /tmp/Ubersicht.Trello.widget.data
-cat /tmp/Ubersicht.Trello.widget.data | \
-/usr/local/bin/jq '[.[] | {name:.name, due:.due, idList:.idList}] | sort_by(.due)'
+node ${UBER_RECORD_SCRIPT}
+cat /tmp/Ubersicht.Trello.widget.data | /usr/local/bin/jq '[.[] | {name:.name, due:.due, idList:.idList}] | sort_by(.due)'
 """
 
 
