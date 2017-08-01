@@ -63,7 +63,6 @@ style: """
 		max-width: 400px
 
 	.container
-		background rgba(#000, .5)
 		margin 20px 20px 15px
 		padding 10px
 		border-radius 5px
@@ -102,6 +101,22 @@ style: """
 
 	.today
 		background: rgba(#afa, 0.2)
+
+
+	#thisMonth
+		background: rgba(#030, 0.2)
+
+	#nextMonth
+		background: rgba(#003, 0.2)
+
+	#beyond
+		background: rgba(#000, 0.5)
+
+	#waiting
+		background: rgba(#000, 0.5)
+		float: left
+		margin-left: 0px
+		max-width: 2000px
 		
 """
 
@@ -117,6 +132,10 @@ render: -> """
 			</div>
 			<div class="container column3" id="beyond">
 				<div class="title"></div>
+				<table></table>
+			</div>
+			<div class="container" id="waiting">
+				<div class="title">Waiting or Blocked</div>
 				<table></table>
 			</div>
 	</div>
