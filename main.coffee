@@ -41,7 +41,7 @@ OFFDAY_INDICIES:[0,6] # Sat and Sun are off days. Colour them differently
 command: """
 $(cat ~/TrelloAPI.env.sh)
 curl --silent "https://api.trello.com/1/boards/${TRELLO_BOARD_ID}/cards?key=${TRELLO_APP_KEY}&token=${TRELLO_TOKEN}" > /tmp/Ubersicht.Trello.widget.data
-node ${UBER_RECORD_SCRIPT}
+/usr/local/bin/node ${UBER_RECORD_SCRIPT}
 cat /tmp/Ubersicht.Trello.widget.data | /usr/local/bin/jq '[.[] | {name:.name, due:.due, idList:.idList}] | sort_by(.due)'
 """
 
