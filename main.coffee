@@ -5,18 +5,18 @@
 # Dependencies
 # * Trello API setup
 # * jq installed
-
-
+#
+#
 # You need to save your Trello API settings in
 #   ~/TrelloAPI.env.sh
 # with the following contents
 #   export TRELLO_APP_KEY=...
 #   export TRELLO_TOKEN=...
 #   export TRELLO_BOARD_ID=...
-#	export UBER_RECORD_SCRIPT=(full path including filename)
-#	export UBER_STATS_DB_PATH=(full path including filename as json)
+#	export UBER_RECORD_SCRIPT=(full path of script including filename to execute)
+#	export UBER_STATS_DB_PATH=(full path of store including filename as json)
 #	export UBER_STATS_LISTS='["...", "...", "..."]'
-#	export UBER_STATS_DONE=... (should be in UBER_STATS_LISTS)
+#	export UBER_STATS_DONE=... (Needs to be an item in UBER_STATS_LISTS)
 
 
 
