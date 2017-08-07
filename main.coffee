@@ -209,10 +209,13 @@ update: (output, domEl) ->
 		$beyondTable.empty()
 
 		now = new Date()
-		next = new Date()
-		next.setMonth(next.getMonth() + 1)
+		# Beyond is any card not this month, or next month (i.e. +2 months)
+		# Date to compare is the 1st day of the month after the next
+		next = new Date(now.getFullYear(), now.getMonth() + 2, 1)
+
 		daysDiff = (d1, d2) -> Math.round((d2 - d1)/uber.MSEC_IN_DAY)
 
+		hasRecords = false
 		for cardData in cards
 			if cardData.idList == uber.trelloDoneListId or cardData.due is null
 				continue
@@ -225,6 +228,11 @@ update: (output, domEl) ->
 				html += """<td class="content">#{cardData.name}</td></tr>"""
 				html += "</tr>"
 				$beyondTable.append(html)
+				hasRecords = true
+
+		if hasRecords == false
+			$beyondTable.append("""<tr><td class="content">(None)</td></tr>""")
+
 
 	drawWaiting = (uber, cards, domEl, containerId) ->
 		$waitingTable = $(domEl).find(containerId).find("table")
