@@ -76,6 +76,7 @@ style: """
 		font-size: 11px
 	
 	.day
+		width: 50px
 		text-align: right
 		background: rgba(#fff, 0.1)
 		
@@ -159,7 +160,7 @@ update: (output, domEl) ->
 		else
 			i = 1
 		w = new Date(y, m, i).getDay()
-		lastDate = new Date(y, m + 1, 0).getDate()
+		lastDate = new Date(y, m, 0).getDate()
 
 		while i <= lastDate
 			w %= 7
