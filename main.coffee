@@ -160,7 +160,7 @@ update: (output, domEl) ->
 		else
 			i = 1
 		w = new Date(y, m, i).getDay()
-		lastDate = new Date(y, m, 0).getDate()
+		lastDate = new Date(y, m+1, 0).getDate() # "Get day before the first day of next month"
 
 		while i <= lastDate
 			w %= 7
