@@ -35,6 +35,7 @@ waitintListId: "5979792053e9f8c3142f4912"    # Id of the waiting list to highlig
 
 MSEC_IN_DAY: 24 * 60 * 60 * 1000
 DAY_NAMES: ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
+MONTH_NAMES: ["January","February","March","April","May","June","July","August","September","October","November","December"]
 OFFDAY_INDICIES:[0,6] # Sat and Sun are off days. Colour them differently
 
 # Fetch all the cards from a board, then convert them into an an array of objects with {Name, Due, ID}
@@ -58,10 +59,11 @@ style: """
 		padding 10px
 		border-radius 5px
 		float: left
-		max-width: 400px
+		max-width: 200px
+		background: rgba(#030, 0.2)
 	
 	.title
-		font-size: 14px
+		font-size: 12px
 		font-weight: 500
 		padding-bottom: 5px
 		text-transform: uppercase	
@@ -73,7 +75,7 @@ style: """
 	td
 		padding: 4px 4px 4px 4px
 		text-align: left
-		font-size: 11px
+		font-size: 10px
 	
 	.day
 		width: 50px
@@ -90,19 +92,11 @@ style: """
 		background: rgba(#0af, 0.8)
 		
 	.content
-		font-size: 16px
+		font-size: 12px
 		font-weight: bold
 
 	.today
 		background: rgba(#afa, 0.2)
-
-
-	#thisMonth
-		background: rgba(#030, 0.2)
-
-
-	#nextMonth
-		background: rgba(#003, 0.2)
 
 
 	#beyond
@@ -117,22 +111,22 @@ style: """
 
 render: -> """
 	<div class="layout">
-			<div class="container" id="thisMonth">
+			<!--div class="container" id="thisMonth">
 				<div class="title">This Month</div>
 				<table></table>
 			</div>
 			<div class="container" id="nextMonth">
 				<div class="title">Next Month</div>
 				<table></table>
-			</div>
-			<div class="container" id="beyond">
+			</div-->
+			<!--div class="container" id="beyond">
 				<div class="title">Beyond</div>
 				<table></table>
 			</div>
 			<div class="container" id="waiting">
 				<div class="title">Waiting or Blocked</div>
 				<table></table>
-			</div>
+			</div-->
 	</div>
 """
 
@@ -144,21 +138,23 @@ render: -> """
 update: (output, domEl) ->
 	cards = JSON.parse(output)
 
-	drawTable = (uber, cards, domEl, containerId, isThisMonth) ->
+	drawTable = (uber, cards, domEl, containerId, monthNum) ->
+		daysDiff = (d1, d2) -> Math.round((d2 - d1)/uber.MSEC_IN_DAY)
+
 		$dailyList = $(domEl).find(containerId).find("table")
 		$dailyList.empty()
 
 		now = new Date()
-		if !isThisMonth
-			now.setMonth(now.getMonth() + 1)
+		isThisMonth = now.getMonth() == monthNum
+
+		now.setMonth(now.getMonth())
 		y = now.getFullYear()
-		m = now.getMonth()
+		m = monthNum
 		today = now.getDate()
 
-		if isThisMonth
-			i = today
-		else
-			i = 1
+		$(domEl).find(containerId).find("div").html uber.MONTH_NAMES[monthNum]
+
+		i = 1
 		w = new Date(y, m, i).getDay()
 		lastDate = new Date(y, m+1, 0).getDate() # "Get day before the first day of next month"
 
@@ -188,6 +184,8 @@ update: (output, domEl) ->
 						html += """<td class="day #{offDayClass}"></td>"""
 
 					html += """<td class="midline"></td>"""
+					diff = daysDiff(now, cardDate)
+					html += "<td>(#{diff}d)</td>"
 					html += """<td class="content #{todayClass}">#{cardData.name}</td>"""
 
 					html += "</tr>"
@@ -252,10 +250,23 @@ update: (output, domEl) ->
 				$waitingTable.append(html)
 
 
-	drawTable(@, cards, domEl, "#thisMonth", true)
-	drawTable(@, cards, domEl, "#nextMonth", false)
-	drawBeyond(@, cards, domEl, "#beyond")
-	drawWaiting(@, cards, domEl, "#waiting")
+	start_month = (new Date()).getMonth()
+	end_month = start_month + 5
+	div_layout = $(domEl).find("#layout")
+	for m in [start_month..end_month]
+		div_name = "month" + m.toString()
+		console.log(div_name + ", " + m)
+		html =  """<div class="container" id="#{div_name}">"""
+		html += """<div class="title"></div>"""
+		html += "<table></table>"
+		html += "</div>"
+		$(domEl).append(html)
+		drawTable(@, cards, domEl, "#" + div_name, m)
+
+	##drawTable(@, cards, domEl, "#thisMonth", true)
+	##drawTable(@, cards, domEl, "#nextMonth", false)
+	#drawBeyond(@, cards, domEl, "#beyond")
+	#drawWaiting(@, cards, domEl, "#waiting")
 
 
 
