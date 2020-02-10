@@ -96,7 +96,7 @@ style: """
 		font-weight: bold
 
 	.today
-		background: rgba(#afa, 0.2)
+		background: rgba(#cfc, 0.7)
 
 
 	#beyond
@@ -185,7 +185,7 @@ update: (output, domEl) ->
 
 					html += """<td class="midline"></td>"""
 					diff = daysDiff(now, cardDate)
-					html += "<td>(#{diff}d)</td>"
+					html += """<td class="${todayClass}">(#{diff}d)</td>"""
 					html += """<td class="content #{todayClass}">#{cardData.name}</td>"""
 
 					html += "</tr>"
@@ -197,6 +197,7 @@ update: (output, domEl) ->
 					<tr>
 						<td class="day #{offDayClass}">#{dayText} #{i}</td>
 						<td class="midline"></td>
+						<td class="#{todayClass}"></td>
 						<td class="content #{todayClass}"></td>
 					</tr>
 				""")
